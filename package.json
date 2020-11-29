@@ -6,15 +6,13 @@
   "scripts": {
     "lint": "xo",
     "test": "npm run lint",
-    "dev": "bookmarklet -d index.js index.html && open index.html",
-    "dist": "bookmarklet index.js | node build.js"
+    "dist": "bookmarklet -d index.js index.html && open index.html"
   },
   "repository": "github:simonroth/hakuna-team-life-balancer",
   "author": "Simon Roth <code@simonroth.ch> (https://simonroth.ch)",
   "license": "MIT",
   "devDependencies": {
     "bookmarklet": "^1.0.4",
-    "get-stdin": "^8.0.0",
     "xo": "^0.35.0"
   },
   "xo": {
