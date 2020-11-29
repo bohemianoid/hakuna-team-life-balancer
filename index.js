@@ -3,18 +3,32 @@
 // @author Simon Roth <code@simonroth.ch> (https://simonroth.ch)
 // ==/Bookmarklet==
 
+const minAvailablePeople = Number(
+  // eslint-disable-next-line no-alert
+  window.prompt('Minimal number of people to be available', 10)
+);
+const selectors = {
+  table: '.c-a-team-calendar__table',
+  today: '.today',
+  startOfWeek: '.start-of-week',
+  weekend: '.weekend',
+  publicHoliday: '.public-holiday-bg, .public-holiday-bg-first-half, .public-holiday-bg-second-half',
+  lifeDayFirstHalf: '.non-work-day-bg, .non-work-day-bg-first-half, .absence-bg, .absence-bg-first-half, .absence-request-bg, .absence-request-bg-first-half',
+  lifeDaySecondHalf: '.non-work-day-bg, .non-work-day-bg-second-half, .absence-bg, .absence-bg-second-half, .absence-request-bg, .absence-request-bg-second-half'
+};
+
 const style = document.createElement('style');
 document.head.append(style);
 
 style.sheet.insertRule(
-  `.c-a-team-calendar__table tbody td:first-child:hover {
+  `${selectors.table} tbody td:first-child:hover {
      cursor: pointer;
      text-decoration: line-through;
   }`,
   style.sheet.cssRules.length
 );
 style.sheet.insertRule(
-  `.c-a-team-calendar__table th.critical {
+  `${selectors.table} th.critical {
      background-color: #db5763;
      border-top-color: #db5763;
      color: #fff;
@@ -22,7 +36,7 @@ style.sheet.insertRule(
   style.sheet.cssRules.length
 );
 style.sheet.insertRule(
-  `.c-a-team-calendar__table .critical {
+  `${selectors.table} .critical {
      border-left-color: #db5763;
      border-left-width: 3px;
      border-right-color: #db5763;
@@ -31,19 +45,19 @@ style.sheet.insertRule(
   style.sheet.cssRules.length
 );
 style.sheet.insertRule(
-  `.c-a-team-calendar__table tfoot th.critical {
+  `${selectors.table} tfoot th.critical {
      border-bottom-color: #db5763;
   }`,
   style.sheet.cssRules.length
 );
 
-const table = document.querySelectorAll('.c-a-team-calendar__table').item(0);
+const table = document.querySelectorAll(selectors.table).item(0);
 const thead = table.querySelectorAll('thead').item(0);
 const tbody = table.querySelectorAll('tbody').item(0);
 
-const today = table.querySelectorAll('.today');
+const today = table.querySelectorAll(selectors.today);
 today.forEach(today => {
-  today.classList.remove('today');
+  today.classList.remove(selectors.today.slice(1));
 });
 
 const tfoot = document.createElement('tfoot');
@@ -67,12 +81,12 @@ function balance() {
     const balanceCell = document.createElement('th');
     totalRow.append(balanceCell);
 
-    if (cols.item(i).classList.contains('start-of-week')) {
-      balanceCell.classList.add('start-of-week');
+    if (cols.item(i).classList.contains(selectors.startOfWeek.slice(1))) {
+      balanceCell.classList.add(selectors.startOfWeek.slice(1));
     }
 
-    if (cols.item(i).classList.contains('weekend')) {
-      balanceCell.classList.add('weekend');
+    if (cols.item(i).classList.contains(selectors.weekend.slice(1))) {
+      balanceCell.classList.add(selectors.weekend.slice(1));
 
       continue;
     }
@@ -88,23 +102,17 @@ function balance() {
         `td:nth-child(${i + 1})`
       ).item(0);
 
-      if (cell.matches(
-        '.public-holiday-bg, .public-holiday-bg-first-half, .public-holiday-bg-second-half'
-      )) {
+      if (cell.matches(selectors.publicHoliday)) {
         publicHoliday = true;
 
         continue;
       }
 
-      if (!cell.matches(
-        '.non-work-day-bg, .non-work-day-bg-first-half, .absence-bg, .absence-bg-first-half, .absence-request-bg, .absence-request-bg-first-half'
-      )) {
+      if (!cell.matches(selectors.lifeDayFirstHalf)) {
         balance['first-half']++;
       }
 
-      if (!cell.matches(
-        '.non-work-day-bg, .non-work-day-bg-second-half, .absence-bg, .absence-bg-second-half, .absence-request-bg, .absence-request-bg-second-half'
-      )) {
+      if (!cell.matches(selectors.lifeDaySecondHalf)) {
         balance['second-half']++;
       }
     }
@@ -116,12 +124,15 @@ function balance() {
     const balanceFirstHalf = document.createElement('sup');
     const balanceSecondHalf = document.createElement('sub');
     balanceCell.append(balanceFirstHalf);
-    balanceCell.append(document.createTextNode('/'));
+    balanceCell.append(document.createTextNode(' '));
     balanceCell.append(balanceSecondHalf);
     balanceFirstHalf.append(document.createTextNode(balance['first-half']));
     balanceSecondHalf.append(document.createTextNode(balance['second-half']));
 
-    if (balance['first-half'] <= 10 || balance['second-half'] <= 10) {
+    if (
+      balance['first-half'] <= minAvailablePeople ||
+      balance['second-half'] <= minAvailablePeople
+    ) {
       const criticalCells = table.querySelectorAll(
         `th:nth-child(${i + 1}), td:nth-child(${i + 1})`
       );
@@ -134,12 +145,12 @@ function balance() {
 }
 
 tbody.addEventListener('click', event => {
-  if (event.target.matches('.c-a-team-calendar__table td:first-child span')) {
+  if (event.target.matches(selectors.table + ' td:first-child span')) {
     event.target.parentElement.parentElement.remove();
     balance();
   }
 
-  if (event.target.matches('.c-a-team-calendar__table td:first-child')) {
+  if (event.target.matches(selectors.table + ' td:first-child')) {
     event.target.parentElement.remove();
     balance();
   }
