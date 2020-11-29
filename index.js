@@ -89,7 +89,7 @@ function balance() {
       ).item(0);
 
       if (cell.matches(
-        '.public-holiday-bg-first-half, .public-holiday-bg-second-half, .public-holiday-bg'
+        '.public-holiday-bg, .public-holiday-bg-first-half, .public-holiday-bg-second-half'
       )) {
         publicHoliday = true;
 
@@ -97,13 +97,13 @@ function balance() {
       }
 
       if (!cell.matches(
-        '.non-work-day-bg-first-half, .absence-bg, .absence-bg-first-half'
+        '.non-work-day-bg, .non-work-day-bg-first-half, .absence-bg, .absence-bg-first-half, .absence-request-bg, .absence-request-bg-first-half'
       )) {
         balance['first-half']++;
       }
 
       if (!cell.matches(
-        '.non-work-day-bg-second-half, .absence-bg, .absence-bg-second-half'
+        '.non-work-day-bg, .non-work-day-bg-second-half, .absence-bg, .absence-bg-second-half, .absence-request-bg, .absence-request-bg-second-half'
       )) {
         balance['second-half']++;
       }
