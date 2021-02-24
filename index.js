@@ -7,6 +7,8 @@ const minAvailablePeople = Number(
   // eslint-disable-next-line no-alert
   window.prompt('Minimal number of people to be available', 10)
 );
+const daily = new Set(['3', '21', '30', '35']);
+const mover = new Set(['3', '21', '30', '51']);
 const selectors = {
   table: '.c-a-team-calendar__table',
   today: '.today',
@@ -56,45 +58,83 @@ const thead = table.querySelectorAll('thead').item(0);
 const tbody = table.querySelectorAll('tbody').item(0);
 
 const today = table.querySelectorAll(selectors.today);
-today.forEach(today => {
-  today.classList.remove(selectors.today.slice(1));
-});
+for (const element of today) {
+  element.classList.remove(selectors.today.slice(1));
+}
 
 const tfoot = document.createElement('tfoot');
 const totalRow = document.createElement('tr');
+const dailyRow = document.createElement('tr');
+const moverRow = document.createElement('tr');
 table.append(tfoot);
 tfoot.append(totalRow);
+tfoot.append(dailyRow);
+tfoot.append(moverRow);
+
+function addBalance(cell, firstHalf, secondHalf) {
+  const sup = document.createElement('sup');
+  const sub = document.createElement('sub');
+  cell.append(sup);
+  cell.append(document.createTextNode(' '));
+  cell.append(sub);
+  sup.append(document.createTextNode(firstHalf));
+  sub.append(document.createTextNode(secondHalf));
+}
 
 function balance() {
   while (totalRow.lastChild) {
     totalRow.lastChild.remove();
+    dailyRow.lastChild.remove();
+    moverRow.lastChild.remove();
   }
 
-  const totalCell = document.createElement('th');
-  totalRow.append(totalCell);
-  totalCell.append(document.createTextNode('Total'));
+  const totalHeader = document.createElement('th');
+  totalRow.append(totalHeader);
+  totalHeader.append(document.createTextNode('Total'));
+
+  const dailyHeader = document.createElement('th');
+  dailyRow.append(dailyHeader);
+  dailyHeader.append(document.createTextNode('Daily'));
+
+  const moverHeader = document.createElement('th');
+  moverRow.append(moverHeader);
+  moverHeader.append(document.createTextNode('Mover'));
 
   const cols = thead.querySelectorAll('th');
   const rows = tbody.querySelectorAll('tr');
 
   for (let i = 1; i < cols.length; i++) {
-    const balanceCell = document.createElement('th');
-    totalRow.append(balanceCell);
+    const totalCell = document.createElement('th');
+    totalRow.append(totalCell);
+
+    const dailyCell = document.createElement('th');
+    dailyRow.append(dailyCell);
+
+    const moverCell = document.createElement('th');
+    moverRow.append(moverCell);
 
     if (cols.item(i).classList.contains(selectors.startOfWeek.slice(1))) {
-      balanceCell.classList.add(selectors.startOfWeek.slice(1));
+      totalCell.classList.add(selectors.startOfWeek.slice(1));
+      dailyCell.classList.add(selectors.startOfWeek.slice(1));
+      moverCell.classList.add(selectors.startOfWeek.slice(1));
     }
 
     if (cols.item(i).classList.contains(selectors.weekend.slice(1))) {
-      balanceCell.classList.add(selectors.weekend.slice(1));
+      totalCell.classList.add(selectors.weekend.slice(1));
+      dailyCell.classList.add(selectors.weekend.slice(1));
+      moverCell.classList.add(selectors.weekend.slice(1));
 
       continue;
     }
 
     let publicHoliday = false;
     const balance = {
-      'first-half': 0,
-      'second-half': 0
+      'total-first-half': 0,
+      'daily-first-half': 0,
+      'mover-first-half': 0,
+      'total-second-half': 0,
+      'daily-second-half': 0,
+      'mover-second-half': 0
     };
 
     for (let j = 0; j < rows.length; j++) {
@@ -109,11 +149,27 @@ function balance() {
       }
 
       if (!cell.matches(selectors.lifeDayFirstHalf)) {
-        balance['first-half']++;
+        balance['total-first-half']++;
+
+        if (daily.has(rows.item(j).dataset.user)) {
+          balance['daily-first-half']++;
+        }
+
+        if (mover.has(rows.item(j).dataset.user)) {
+          balance['mover-first-half']++;
+        }
       }
 
       if (!cell.matches(selectors.lifeDaySecondHalf)) {
-        balance['second-half']++;
+        balance['total-second-half']++;
+
+        if (daily.has(rows.item(j).dataset.user)) {
+          balance['daily-second-half']++;
+        }
+
+        if (mover.has(rows.item(j).dataset.user)) {
+          balance['mover-second-half']++;
+        }
       }
     }
 
@@ -121,25 +177,33 @@ function balance() {
       continue;
     }
 
-    const balanceFirstHalf = document.createElement('sup');
-    const balanceSecondHalf = document.createElement('sub');
-    balanceCell.append(balanceFirstHalf);
-    balanceCell.append(document.createTextNode(' '));
-    balanceCell.append(balanceSecondHalf);
-    balanceFirstHalf.append(document.createTextNode(balance['first-half']));
-    balanceSecondHalf.append(document.createTextNode(balance['second-half']));
+    addBalance(
+      totalCell,
+      balance['total-first-half'],
+      balance['total-second-half']
+    );
+    addBalance(
+      dailyCell,
+      balance['daily-first-half'],
+      balance['daily-second-half']
+    );
+    addBalance(
+      moverCell,
+      balance['mover-first-half'],
+      balance['mover-second-half']
+    );
 
     if (
-      balance['first-half'] <= minAvailablePeople ||
-      balance['second-half'] <= minAvailablePeople
+      balance['total-first-half'] <= minAvailablePeople ||
+      balance['total-second-half'] <= minAvailablePeople
     ) {
       const criticalCells = table.querySelectorAll(
         `th:nth-child(${i + 1}), td:nth-child(${i + 1})`
       );
 
-      criticalCells.forEach(cell => {
+      for (const cell of criticalCells) {
         cell.classList.add('critical');
-      });
+      }
     }
   }
 }
