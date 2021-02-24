@@ -12,3 +12,4 @@
 * Counts the available people in hakuna under «Absences» > «Employees»
 * Marks days with 10 or less people
 * Allows to skip people by clicking on their name
+* Allows to count people of a certain role
