@@ -1,6 +1,6 @@
 {
   "name": "hakuna-team-life-balancer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "hakuna bookmarklet to check the team-life balance",
   "main": "index.js",
   "scripts": {
@@ -12,8 +12,8 @@
   "author": "Simon Roth <code@simonroth.ch> (https://simonroth.ch)",
   "license": "MIT",
   "devDependencies": {
-    "bookmarklet": "^1.0.4",
-    "xo": "^0.38.1"
+    "bookmarklet": "^3.0.0",
+    "xo": "^0.44.0"
   },
   "xo": {
     "envs": [

@@ -1,14 +1,18 @@
 // ==Bookmarklet==
 // @name Team-Life Balancer
-// @author Simon Roth <code@simonroth.ch> (https://simonroth.ch)
+// @author Simon Häfliger <code@simonhaefliger.ch> (https://simonhaefliger.ch)
 // ==/Bookmarklet==
 
 const minAvailablePeople = Number(
   // eslint-disable-next-line no-alert
-  window.prompt('Minimal number of people to be available', 10)
+  window.prompt('Minimal number of people to be available', 10),
 );
-const daily = new Set(['3', '21', '30', '35']);
-const mover = new Set(['3', '21', '30', '51']);
+const daily = new Set(['3', '21', '26', '35', '44']);
+const mover = new Set(['3', '21', '26', '44', '57']);
+const blocked = new Map([
+  ['35', new Set([2, 3])],
+  ['52', new Set([1, 4])],
+]);
 const selectors = {
   table: '.c-a-team-calendar__table',
   today: '.today',
@@ -16,7 +20,7 @@ const selectors = {
   weekend: '.weekend',
   publicHoliday: '.public-holiday-bg, .public-holiday-bg-first-half, .public-holiday-bg-second-half',
   lifeDayFirstHalf: '.non-work-day-bg, .non-work-day-bg-first-half, .absence-bg, .absence-bg-first-half, .absence-request-bg, .absence-request-bg-first-half',
-  lifeDaySecondHalf: '.non-work-day-bg, .non-work-day-bg-second-half, .absence-bg, .absence-bg-second-half, .absence-request-bg, .absence-request-bg-second-half'
+  lifeDaySecondHalf: '.non-work-day-bg, .non-work-day-bg-second-half, .absence-bg, .absence-bg-second-half, .absence-request-bg, .absence-request-bg-second-half',
 };
 
 const style = document.createElement('style');
@@ -27,7 +31,7 @@ style.sheet.insertRule(
      cursor: pointer;
      text-decoration: line-through;
   }`,
-  style.sheet.cssRules.length
+  style.sheet.cssRules.length,
 );
 style.sheet.insertRule(
   `${selectors.table} th.critical {
@@ -35,7 +39,7 @@ style.sheet.insertRule(
      border-top-color: #db5763;
      color: #fff;
   }`,
-  style.sheet.cssRules.length
+  style.sheet.cssRules.length,
 );
 style.sheet.insertRule(
   `${selectors.table} .critical {
@@ -44,13 +48,13 @@ style.sheet.insertRule(
      border-right-color: #db5763;
      border-right-width: 3px;
   }`,
-  style.sheet.cssRules.length
+  style.sheet.cssRules.length,
 );
 style.sheet.insertRule(
   `${selectors.table} tfoot th.critical {
      border-bottom-color: #db5763;
   }`,
-  style.sheet.cssRules.length
+  style.sheet.cssRules.length,
 );
 
 const table = document.querySelectorAll(selectors.table).item(0);
@@ -104,6 +108,12 @@ function balance() {
   const rows = tbody.querySelectorAll('tr');
 
   for (let i = 1; i < cols.length; i++) {
+    const date = new Date(
+      table.dataset.year,
+      table.dataset.month - 1,
+      cols.item(i).textContent,
+    );
+
     const totalCell = document.createElement('th');
     totalRow.append(totalCell);
 
@@ -134,18 +144,28 @@ function balance() {
       'mover-first-half': 0,
       'total-second-half': 0,
       'daily-second-half': 0,
-      'mover-second-half': 0
+      'mover-second-half': 0,
     };
 
     for (let j = 0; j < rows.length; j++) {
       const cell = rows.item(j).querySelectorAll(
-        `td:nth-child(${i + 1})`
+        `td:nth-child(${i + 1})`,
       ).item(0);
 
       if (cell.matches(selectors.publicHoliday)) {
         publicHoliday = true;
 
         continue;
+      }
+
+      if (blocked.has(rows.item(j).dataset.user)) {
+        // eslint-disable-next-line unicorn/no-lonely-if
+        if (blocked.get(rows.item(j).dataset.user).has(date.getDay())) {
+          cell.classList.add(
+            'non-work-day-bg-first-half',
+            'non-work-day-bg-second-half',
+          );
+        }
       }
 
       if (!cell.matches(selectors.lifeDayFirstHalf)) {
@@ -180,25 +200,25 @@ function balance() {
     addBalance(
       totalCell,
       balance['total-first-half'],
-      balance['total-second-half']
+      balance['total-second-half'],
     );
     addBalance(
       dailyCell,
       balance['daily-first-half'],
-      balance['daily-second-half']
+      balance['daily-second-half'],
     );
     addBalance(
       moverCell,
       balance['mover-first-half'],
-      balance['mover-second-half']
+      balance['mover-second-half'],
     );
 
     if (
-      balance['total-first-half'] <= minAvailablePeople ||
-      balance['total-second-half'] <= minAvailablePeople
+      balance['total-first-half'] <= minAvailablePeople
+      || balance['total-second-half'] <= minAvailablePeople
     ) {
       const criticalCells = table.querySelectorAll(
-        `th:nth-child(${i + 1}), td:nth-child(${i + 1})`
+        `th:nth-child(${i + 1}), td:nth-child(${i + 1})`,
       );
 
       for (const cell of criticalCells) {
