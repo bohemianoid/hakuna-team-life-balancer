@@ -7,11 +7,11 @@ const minAvailablePeople = Number(
   // eslint-disable-next-line no-alert
   window.prompt('Minimal number of people to be available', 10),
 );
-const daily = new Set(['3', '21', '26', '35', '44']);
+const daily = new Set(['3', '21', '26', '35', '41', '44', '57']);
 const mover = new Set(['3', '21', '26', '44', '57']);
 const blocked = new Map([
   ['35', new Set([2, 3])],
-  ['52', new Set([1, 4])],
+  ['52', new Set([1, 2, 3, 4])],
 ]);
 const selectors = {
   table: '.c-a-team-calendar__table',
