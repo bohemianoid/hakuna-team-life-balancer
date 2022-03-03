@@ -10,7 +10,7 @@
 
 ## Features
 * Counts the available people in hakuna under «Absences» > «Employees»
-* Marks days with less than a given number available people
+* Marks days with less than a given number of available people
 * Allows to skip people by clicking on their name
 * Allows to count people of a certain role
 * Allows to exclude people on certain weekdays
